@@ -57,6 +57,13 @@ ComposableRecorder::ComposableRecorder(const rclcpp::NodeOptions & options)
   sopt.max_bagfile_size = declare_parameter<int>("max_bagfile_size", 0);
   sopt.max_bagfile_duration = declare_parameter<int>("max_bagfile_duration", 0);
 
+  // Set the bag file path before starting recording
+  if (!bag_name_.empty()) {
+    sopt.uri = bag_name_;
+  } else {
+    sopt.uri = bag_prefix_ + get_time_stamp();
+  }
+
   // set recorder options
 #ifdef USE_GET_RECORD_OPTIONS
   rosbag2_transport::RecordOptions & ropt = get_record_options();
@@ -83,6 +90,7 @@ ComposableRecorder::ComposableRecorder(const rclcpp::NodeOptions & options)
 
   if (declare_parameter<bool>("start_recording_immediately", false)) {
     record();
+    isRecording_ = true;
   } else {
     start_service_ = create_service<std_srvs::srv::Trigger>(
       "start_recording",
